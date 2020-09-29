@@ -1,0 +1,5 @@
+.DS_Store
+*.csv
+*.pgn
+.ipynb_checkpoints/
+__pycache__/

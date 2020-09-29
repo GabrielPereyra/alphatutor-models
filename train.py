@@ -8,14 +8,16 @@ import tensorflow as tf
 @click.command()
 @click.argument('task')
 @click.argument('model')
+@click.option('--data', default='data/csvs')
 @click.option('--shards', default=1)
 @click.option('--checkpoint')
 @click.option('--tensorboard')
-def train(task, model, shards, checkpoint, tensorboard):
+def train(task, model, data, shards, checkpoint, tensorboard):
     task = getattr(tasks, task)
     model = getattr(models, model)()
 
-    df = utils.get_df(shards)
+    df = utils.get_df(data, shards)
+    df = utils.normalize_df(df)
     train_data, valid_data = utils.split(df, task, 1024)
     model.compile(optimizer='adam', loss=task['outputs'])
     model.summary()
@@ -26,8 +28,6 @@ def train(task, model, shards, checkpoint, tensorboard):
 
 
 # TODO: how to train a model that requires a checkpoint?
-# TODO: how to store tensorboard?
-# TODO: how to set checkpoint path (need this for colab).
 
 
 if __name__ == '__main__':

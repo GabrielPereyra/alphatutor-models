@@ -6,8 +6,8 @@ import pandas as pd
 import tensorflow as tf
 
 
-def get_df_from_shards(shards):
-    path = 'data/csvs/lichess_db_standard_rated_2020-08/'
+def get_df(data, shards):
+    path = '{}/lichess_db_standard_rated_2020-08/'.format(data)
     dfs = []
     for i, filename in enumerate(os.listdir(path)):
         if i >= shards:
@@ -17,8 +17,7 @@ def get_df_from_shards(shards):
     return pd.concat(dfs)
 
 
-def get_df(shards):
-    df = get_df_from_shards(shards)
+def normalize_df(df):
     df = df[~df['prev_score'].isna()]
     df['prev_score'] = (df['prev_score'] - df['prev_score'].mean()) / df['prev_score'].std()
     df['score_loss'] = df['prev_score'] - df['score']
