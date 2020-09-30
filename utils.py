@@ -7,25 +7,41 @@ import tensorflow as tf
 GPU = bool(tf.config.experimental.list_physical_devices('GPU'))
 
 
-
 def get_df(data, shards):
     path = '{}/lichess_db_standard_rated_2020-08/'.format(data)
     dfs = []
     for i, filename in enumerate(os.listdir(path)):
         if i >= shards:
             break
-        df = pd.read_csv(path + filename)
+        df = pd.read_csv(path + filename)[['username', 'fen', 'elo', 'prev_score', 'score']]
         dfs.append(df)
     return pd.concat(dfs)
 
 
+def normalize_col(df, col):
+    df[col] = (df[col] - df[col].mean()) / df[col].std()
+    return df
+
+
 def normalize_df(df):
-    df = df[~df['prev_score'].isna()]
-    df['prev_score'] = (df['prev_score'] - df['prev_score'].mean()) / df['prev_score'].std()
-    df['score_loss'] = df['prev_score'] - df['score']
-    df = df[~df['score_loss'].isna()]
-    df['mistake'] = df['score_loss'] > 50
-    df['elo'] = (df['elo'] - df['elo'].mean()) / df['elo'].std()
+    df['elo_bin'] =  (df['elo'] / 100).astype(int)
+
+    # df = df[~df['prev_score'].isna()]
+    # df['score_loss'] = (df['prev_score'] - df['score']).clip(0)
+    # df = df[~df['score_loss'].isna()]
+    #
+    # df = df[df['score_loss'] != 0]
+    # df['score_loss'] = np.log(1 + df['score_loss'])
+    # df['score_loss'] = (df['score_loss'] - df['score_loss'].mean()) / df['score_loss'].std()
+
+    # df['mistake'] = df['score_loss'] > 50
+    #
+    # df = normalize_col(df, 'prev_score')
+    # df = normalize_col(df, 'elo')
+
+    # TODO: compare acuracy when normalizing with log10(1 + x)
+    # df = normalize_col(df, 'score_loss')
+
     return df
 
 
