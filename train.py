@@ -1,3 +1,4 @@
+import shutil
 import click
 import utils
 import tasks
@@ -18,16 +19,34 @@ def train(task, model, data, shards, checkpoint, tensorboard):
 
     df = utils.get_df(data, shards)
     df = utils.normalize_df(df)
-    train_data, valid_data = utils.split(df, task, 1024)
-    model.compile(optimizer='adam', loss=task['outputs'])
+    df = df.sample(frac=1)
+    dataset = utils.Data(df, task)
+
+    callbacks = []
+    if tensorboard:
+        shutil.rmtree(tensorboard, ignore_errors=True)
+        callbacks.append(tf.keras.callbacks.TensorBoard(
+            tensorboard,
+            profile_batch=2,
+            update_freq=100,
+        ))
+
+    model.compile(optimizer='adam', loss=task['outputs'], metrics=task.get('metrics'))
     model.summary()
-    model.fit(train_data, validation_data=valid_data, epochs=10, callbacks=tf.keras.callbacks.TensorBoard(tensorboard) if tensorboard else None)
+
+    model.fit(
+        dataset,
+        callbacks=callbacks,
+        workers=4,
+        max_queue_size=1000,
+        use_multiprocessing=True,
+    )
 
     if checkpoint:
         model.save('checkpoints/{}'.format(checkpoint))
 
 
-# TODO: how to train a model that requires a checkpoint?
+# TODO: how to train a model that requires a checkpoint? Load from checkpoint to start.
 
 
 if __name__ == '__main__':

@@ -9,12 +9,14 @@ mistake_from_elo = {
 
 mistake_from_fen = {
     'inputs': ['fen'],
-    'outputs': {'mistake': tf.keras.losses.BinaryCrossentropy(from_logits=True)}
+    'outputs': {'mistake': tf.keras.losses.BinaryCrossentropy(from_logits=True)},
+    'metrics': 'accuracy',
 }
 
 mistake_from_fen_and_elo = {
     'inputs': ['fen', 'elo'],
-    'outputs': {'mistake': tf.keras.losses.BinaryCrossentropy(from_logits=True)}
+    'outputs': {'mistake': tf.keras.losses.BinaryCrossentropy(from_logits=True)},
+    'metrics': 'accuracy',
 }
 
 value_from_fen = {
